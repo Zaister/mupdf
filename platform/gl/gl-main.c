@@ -692,6 +692,8 @@ void trace_save_snapshot(void)
 void update_title(void)
 {
 	char buf[256];
+	char buf2[256];
+	char display[256];
 	char *title = "MuPDF/GL";
 	char *extra = "";
 	size_t n;
@@ -711,24 +713,32 @@ void update_title(void)
 
 	n = strlen(title);
 	if (n > 50)
+		sprintf(display, "...%s%s", title + n - 50, extra);
+	else
+		sprintf(display, "%s%s", title, extra);
+
+
+	if (nc == 1)
 	{
-		if (nc == 1)
-			sprintf(buf, "...%s%s - %d/%d", title + n - 50, extra, currentpage.page + 1, fz_count_pages(ctx, doc));
+		fz_page *fzpage = fz_load_page(ctx, doc, currentpage.page);
+		char *label = fz_get_page_label(ctx, doc, fzpage);
+
+		if (label)
+			sprintf(buf, "%s - %s (%d/%d)", display, label, currentpage.page + 1, fz_count_pages(ctx, doc));
 		else
-			sprintf(buf, "...%s%s - %d/%d - %d/%d", title + n - 50, extra,
-				currentpage.chapter + 1, nc,
-				currentpage.page + 1, fz_count_chapter_pages(ctx, doc, currentpage.chapter));
+			sprintf(buf, "%s - %d/%d", display, currentpage.page + 1, fz_count_pages(ctx, doc));
 	}
 	else
 	{
-		if (nc == 1)
-			sprintf(buf, "%s%s - %d/%d", title, extra, currentpage.page + 1, fz_count_pages(ctx, doc));
-		else
+		fz_page *fzpage = fz_load_chapter_page(ctx, doc, currentpage.chapter, currentpage.page);
+		char *label = fz_get_page_label(ctx, doc, fzpage);
 
-			sprintf(buf, "%s%s - %d/%d - %d/%d", title, extra,
-				currentpage.chapter + 1, nc,
-				currentpage.page + 1, fz_count_chapter_pages(ctx, doc, currentpage.chapter));
+		if (label)
+			sprintf(buf, "%s - %s (%d/%d) - %d/%d", display, label, currentpage.chapter + 1, nc, currentpage.page + 1, fz_count_chapter_pages(ctx, doc, currentpage.chapter));
+		else
+			sprintf(buf, "%s - %d/%d - %d/%d", display, currentpage.chapter + 1, nc, currentpage.page + 1, fz_count_chapter_pages(ctx, doc, currentpage.chapter));
 	}
+
 	glutSetWindowTitle(buf);
 	glutSetIconTitle(buf);
 }
