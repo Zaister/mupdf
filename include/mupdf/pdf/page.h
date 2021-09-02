@@ -6,6 +6,7 @@
 int pdf_lookup_page_number(fz_context *ctx, pdf_document *doc, pdf_obj *pageobj);
 int pdf_count_pages(fz_context *ctx, pdf_document *doc);
 int pdf_count_pages_imp(fz_context *ctx, fz_document *doc, int chapter);
+char *pdf_page_label(pdf_page *page);
 pdf_obj *pdf_lookup_page_obj(fz_context *ctx, pdf_document *doc, int needle);
 void pdf_load_page_tree(fz_context *ctx, pdf_document *doc);
 void pdf_drop_page_tree(fz_context *ctx, pdf_document *doc);
@@ -153,6 +154,8 @@ struct pdf_page
 	fz_link *links;
 	pdf_annot *annots, **annot_tailp;
 	pdf_widget *widgets, **widget_tailp;
+
+	char* label;
 };
 
 #endif

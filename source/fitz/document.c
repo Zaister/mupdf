@@ -690,3 +690,12 @@ int fz_page_uses_overprint(fz_context *ctx, fz_page *page)
 		return page->overprint(ctx, page);
 	return 0;
 }
+
+char *
+fz_get_page_label(fz_context *ctx, fz_document *doc, fz_page *page)
+{
+	if (doc && doc->page_label && doc->page_label(page))
+		return doc->page_label(page);
+	return NULL;
+
+}

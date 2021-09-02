@@ -9,6 +9,10 @@ typedef struct pdf_annot pdf_annot;
 typedef struct pdf_annot pdf_widget;
 typedef struct pdf_js pdf_js;
 
+/* Page labels */
+typedef struct pdf_label_item pdf_label_item;
+typedef struct pdf_label_items pdf_label_items;
+
 enum
 {
 	PDF_LEXBUF_SMALL = 256,
@@ -292,6 +296,18 @@ typedef struct {
 	pdf_xfa_entry *entries;
 } pdf_xfa;
 
+struct pdf_label_item {
+	int pagenum;
+	const char *style;
+	char *prefix;
+	int value;
+};
+
+struct pdf_label_items {
+	int count;
+	pdf_label_item** items;
+};
+
 struct pdf_document
 {
 	fz_document super;
@@ -387,6 +403,8 @@ struct pdf_document
 	pdf_obj **orphans;
 
 	pdf_xfa xfa;
+
+	pdf_label_items label_items;
 };
 
 pdf_document *pdf_create_document(fz_context *ctx);

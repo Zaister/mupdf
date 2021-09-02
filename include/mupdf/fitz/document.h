@@ -309,6 +309,8 @@ typedef fz_document *(fz_document_open_accel_with_stream_fn)(fz_context *ctx, fz
 */
 typedef int (fz_document_recognize_fn)(fz_context *ctx, const char *magic);
 
+typedef char *(fz_document_page_label_fn)(fz_page *page);
+
 /**
 	Register a handler for a document type.
 
@@ -678,6 +680,9 @@ fz_transition *fz_page_presentation(fz_context *ctx, fz_page *page, fz_transitio
 */
 int fz_has_permission(fz_context *ctx, fz_document *doc, fz_permission p);
 
+
+char *fz_get_page_label(fz_context *ctx, fz_document *doc, fz_page *page);
+
 /**
 	Retrieve document meta data strings.
 
@@ -795,6 +800,7 @@ struct fz_document
 	int did_layout;
 	int is_reflowable;
 	fz_page *open; /* linked list of currently open pages */
+	fz_document_page_label_fn *page_label;
 };
 
 struct fz_document_handler

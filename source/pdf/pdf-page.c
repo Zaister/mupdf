@@ -307,6 +307,51 @@ pdf_lookup_page_number(fz_context *ctx, pdf_document *doc, pdf_obj *page)
 		return pdf_lookup_page_number_slow(ctx, doc, page);
 }
 
+char *
+pdf_lookup_page_label(fz_context *ctx, pdf_document *doc, int pagenum)
+{
+	int i, num;
+	char *page_label;
+
+	if (doc->label_items.count > 0)
+	{
+		for (i = 0; i < doc->label_items.count; i++)
+		{
+			if (doc->label_items.items[i]->pagenum > pagenum)
+			{
+				break;
+			}
+		}
+		pdf_label_item *label = doc->label_items.items[--i];
+		num = label->pagenum == 0 ? pagenum + 1 : fz_max(label->value, 1) + (pagenum - label->pagenum);
+
+		if (strcmp(label->prefix, "") && label->value > 0)
+		{
+			page_label = fz_malloc(ctx, strlen(label->prefix) + 32);
+			sprintf(page_label, "%s %d", label->prefix, num);
+		}
+		else if (strcmp(label->prefix, ""))
+		{
+			page_label = fz_malloc(ctx, strlen(label->prefix));
+			sprintf(page_label, "%s", label->prefix);
+		}
+		else if (strcmp(label->style, ""))
+		{
+			page_label = fz_malloc(ctx, 32);
+			sprintf(page_label, "%d", num);
+		}
+		else
+		{
+			page_label = fz_malloc(ctx, 32);
+			page_label[0] = 0;
+		}
+		return page_label;
+	}
+
+	return 0;
+
+}
+
 int
 pdf_lookup_anchor(fz_context *ctx, pdf_document *doc, const char *name, float *xp, float *yp)
 {
@@ -928,6 +973,9 @@ pdf_drop_page_imp(fz_context *ctx, pdf_page *page)
 	pdf_drop_annots(ctx, page->annots);
 	pdf_drop_widgets(ctx, page->widgets);
 
+	if (page->label)
+		fz_free(ctx, page->label);
+
 	pdf_drop_obj(ctx, page->obj);
 
 	fz_drop_document(ctx, &page->doc->super);
@@ -1134,6 +1182,19 @@ pdf_load_page(fz_context *ctx, pdf_document *doc, int number)
 			fz_rethrow(ctx);
 		}
 		page->super.incomplete = 1;
+	}
+
+	/* set page label */
+	fz_try(ctx)
+	{
+		if (doc->label_items.count > 0)
+		{
+			page->label = pdf_lookup_page_label(ctx, doc, number);
+		}
+	}
+	fz_catch(ctx)
+	{
+		fz_warn(ctx, "Could not set page label");
 	}
 
 	return page;
